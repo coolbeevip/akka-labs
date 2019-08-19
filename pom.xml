@@ -1,0 +1,78 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.1.1.RELEASE</version>
+    <relativePath/> <!-- lookup parent from repository -->
+  </parent>
+
+  <groupId>coolbeevip.labs</groupId>
+  <artifactId>akka.java</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0-SNAPSHOT</version>
+
+  <modules>
+    <module>akka-java-fsm</module>
+    <module>akka-java-persistence-fsm</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <java.version>1.8</java.version>
+    <lombok.version>1.16.16</lombok.version>
+    <awaitility.version>3.0.0</awaitility.version>
+    <akka.version>2.5.24</akka.version>
+    <slf4j.version>1.7.21</slf4j.version>
+    <logback.version>1.1.7</logback.version>
+    <scalatest.version>3.2.0-SNAP10</scalatest.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-actor_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-persistence_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+
+      <!-- test -->
+      <dependency>
+        <groupId>org.scalatest</groupId>
+        <artifactId>scalatest_2.12</artifactId>
+        <version>${scalatest.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-testkit_2.12</artifactId>
+        <version>${akka.version}</version>
+        <scope>test</scope>
+      </dependency> 
+    </dependencies>   
+  </dependencyManagement>  
+</project>
