@@ -1,6 +1,5 @@
 package coolbeevip.labs.akka.java.persistence.fsm.event;
 
-import coolbeevip.labs.akka.java.persistence.fsm.domain.DomainEvent;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Builder;

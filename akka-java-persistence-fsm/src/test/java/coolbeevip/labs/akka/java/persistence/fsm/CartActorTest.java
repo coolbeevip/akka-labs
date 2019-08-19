@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Props;
 import akka.testkit.javadsl.TestKit;
 import com.typesafe.config.ConfigFactory;
 import coolbeevip.labs.akka.java.persistence.fsm.event.AddItem;

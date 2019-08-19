@@ -1,7 +1,6 @@
 package coolbeevip.labs.akka.java.fsm;
 
 import static coolbeevip.labs.akka.java.fsm.State.Empty;
-
 import static coolbeevip.labs.akka.java.fsm.State.Shopping;
 
 import akka.actor.AbstractFSM;
