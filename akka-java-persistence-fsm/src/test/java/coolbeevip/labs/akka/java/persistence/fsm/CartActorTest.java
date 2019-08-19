@@ -44,6 +44,18 @@ public class CartActorTest extends JUnitSuite {
     return map;
   }
 
+  private static Map<String,Object> getPersistenceRedisConfig(){
+    Map<String, Object> map = new HashMap<>();
+    map.put("akka.actor.warn-about-java-serializer-usage",false);
+    map.put("akka.persistence.journal.plugin", "akka-persistence-redis.journal");
+    map.put("akka.persistence.snapshot-store.plugin", "akka-persistence-redis.snapshot");
+    map.put("akka-persistence-redis.redis.mode", "simple");
+    map.put("akka-persistence-redis.redis.host", "localhost");
+    map.put("akka-persistence-redis.redis.port", "6379");
+    map.put("akka-persistence-redis.redis.database", "0");
+    return map;
+  }
+
   @Test
   public void test() {
     new TestKit(system) {
