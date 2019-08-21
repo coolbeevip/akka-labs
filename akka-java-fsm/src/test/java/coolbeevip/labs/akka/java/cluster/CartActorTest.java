@@ -1,4 +1,4 @@
-package coolbeevip.labs.akka.java.fsm;
+package coolbeevip.labs.akka.java.cluster;
 
 import static org.junit.Assert.assertEquals;
 
@@ -6,6 +6,8 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.javadsl.TestKit;
+import coolbeevip.labs.akka.java.fsm.CartActor;
+import coolbeevip.labs.akka.java.fsm.DataExtension;
 import coolbeevip.labs.akka.java.fsm.event.AddItem;
 import coolbeevip.labs.akka.java.fsm.event.Payment;
 import org.junit.AfterClass;
@@ -42,7 +44,7 @@ public class CartActorTest extends JUnitSuite {
         cartActor.tell(addItem2, ActorRef.noSender());
         cartActor.tell(Payment.builder().build(), ActorRef.noSender());
         expectNoMessage();
-        assertEquals(3,DataExtension.DATA_EXTENSION_PROVIDER.get(system).getItems().size());
+        assertEquals(3, DataExtension.DATA_EXTENSION_PROVIDER.get(system).getItems().size());
         system.stop(cartActor);
       }
     };

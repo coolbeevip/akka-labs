@@ -17,6 +17,7 @@
   <modules>
     <module>akka-java-fsm</module>
     <module>akka-java-persistence-fsm</module>
+    <module>akka-java-cluster</module>
   </modules>
 
   <properties>
@@ -29,10 +30,12 @@
     <slf4j.version>1.7.21</slf4j.version>
     <logback.version>1.1.7</logback.version>
     <scalatest.version>3.2.0-SNAP10</scalatest.version>
+    <awaitility.version>3.0.0</awaitility.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- akka -->
       <dependency>
         <groupId>com.typesafe.akka</groupId>
         <artifactId>akka-actor_2.12</artifactId>
@@ -41,6 +44,21 @@
       <dependency>
         <groupId>com.typesafe.akka</groupId>
         <artifactId>akka-persistence_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-cluster_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-cluster-tools_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-cluster-metrics_2.12</artifactId>
         <version>${akka.version}</version>
       </dependency>
 
@@ -72,7 +90,12 @@
         <artifactId>akka-testkit_2.12</artifactId>
         <version>${akka.version}</version>
         <scope>test</scope>
-      </dependency> 
+      </dependency>
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>${awaitility.version}</version>
+      </dependency>
     </dependencies>   
   </dependencyManagement>  
 </project>
