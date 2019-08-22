@@ -18,6 +18,7 @@
     <module>akka-java-fsm</module>
     <module>akka-java-persistence-fsm</module>
     <module>akka-java-cluster</module>
+    <module>akka-java-cluster-pubsub</module>
   </modules>
 
   <properties>
