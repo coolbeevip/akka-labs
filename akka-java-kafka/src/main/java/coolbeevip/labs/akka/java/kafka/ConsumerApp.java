@@ -1,6 +1,13 @@
 package coolbeevip.labs.akka.java.kafka;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.PoisonPill;
+import akka.actor.Props;
+import akka.cluster.singleton.ClusterSingletonManager;
+import akka.cluster.singleton.ClusterSingletonManagerSettings;
+import akka.cluster.singleton.ClusterSingletonProxy;
+import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.kafka.ConsumerSettings;
 import akka.kafka.Subscriptions;
 import akka.kafka.javadsl.Consumer;
@@ -9,6 +16,9 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import coolbeevip.labs.akka.java.kafka.actor.Message;
+import coolbeevip.labs.akka.java.kafka.actor.RouteSingletonActor;
+import coolbeevip.labs.akka.java.kafka.actor.Stop;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,15 +43,31 @@ public class ConsumerApp {
   public final static String BOOTSTRAP_SERVERS = "localhost:9092";
 
   public static void main(String[] args) {
-    startup(new String[]{"2551", "2552", "0"});
+    if(args.length==0){
+      startup(new String[]{"2551", "2552", "0"});
+    }else{
+      startup(args);
+    }
   }
 
   public static void startup(String[] ports) {
     for (String port : ports) {
       // init ActorSystem
       final Config config =
-          ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port);
+          ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port)
+              .withFallback(ConfigFactory.parseString("akka.cluster.roles = [compute]"))
+              .withFallback(ConfigFactory.load("route-singleton"));
       final ActorSystem system = ActorSystem.create("ClusterSystem", config);
+
+      // 创建单例RouteActor
+      ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system).withRole("compute");
+      system.actorOf(ClusterSingletonManager.props(
+          Props.create(RouteSingletonActor.class), PoisonPill.getInstance(), settings),
+          "routeActor");
+      ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system).withRole("compute");
+      ActorRef routeActorProxy = system.actorOf(ClusterSingletonProxy.props("/user/routeActor",
+          proxySettings), "routeActorProxy");
+
       final Materializer materializer = ActorMaterializer.create(system);
 
       // load kafka config
@@ -61,12 +87,16 @@ public class ConsumerApp {
               .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
       Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(TOPIC_NAME))
-          .mapAsync(10, record -> {
-            LOG.debug(String.format("key %s, value %s", record.key(), record.value()));
-            return CompletableFuture.completedFuture(record.value());
+          .mapAsync(1, record -> {
+            LOG.debug("key {}, value {}", record.key(), record.value());
+            return CompletableFuture.completedFuture(record);
           })
-          .to(Sink.foreach(it -> {
-            LOG.info("Done {}",it);
+          .to(Sink.foreach(record -> {
+            if(record.value().equals("stop")){
+              routeActorProxy.tell(new Stop(record.key()),routeActorProxy);
+            }else{
+              routeActorProxy.tell(new Message(record.key(),record.value()),routeActorProxy);
+            }
           }))
           .run(materializer);
     }

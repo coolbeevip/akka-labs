@@ -21,6 +21,7 @@
     <module>akka-java-cluster</module>
     <module>akka-java-cluster-pubsub</module>
     <module>akka-java-cluster-sharding</module>
+    <module>akka-java-typed-persistence-fsm</module>
   </modules>
 
   <properties>
@@ -75,6 +76,11 @@
         <groupId>com.typesafe.akka</groupId>
         <artifactId>akka-stream-kafka_2.12</artifactId>
         <version>${alpakka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-actor-typed_2.12</artifactId>
+        <version>${akka.version}</version>
       </dependency>
 
       <dependency>

@@ -18,15 +18,17 @@ public class ProducerApp {
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     Producer<String, String> producer = new KafkaProducer<>(props);
-    for (int k = 0; k < 3; k++) {
+    long counter=0;
+    for (int k = 0; k < 1; k++) {
       String globalTxId = UUID.randomUUID().toString();
       for (int i = 0; i < 10; i++) {
         producer.send(new ProducerRecord<String, String>(ConsumerApp.TOPIC_NAME,
-            globalTxId, Integer.toString(i)));
+            globalTxId, String.valueOf(i)));
       }
+      producer.send(new ProducerRecord<String, String>(ConsumerApp.TOPIC_NAME,
+          globalTxId, "stop"));
     }
-
-    System.out.println("Message sent successfully");
+    System.out.println("Message sent successfully. total "+counter);
     producer.flush();
     producer.close();
   }
