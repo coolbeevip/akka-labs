@@ -2,7 +2,9 @@ package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor;
 
 import akka.persistence.fsm.AbstractPersistentFSM;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.Domain;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.MessageDomain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.StartDomain;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.StopDomain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StoppedEvent;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.EventMessage;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StartedEvent;
@@ -21,13 +23,13 @@ public class WorkerActor extends
 
   public WorkerActor() {
     persistenceId = getSelf().path().name();
-    startWith(WorkerState.IDLE, WorkerData.builder().build());
+    startWith(WorkerState.IDLE, WorkerData.builder().actorId(persistenceId).build());
 
     when(WorkerState.IDLE,
         matchEvent(StartedEvent.class,
             (event, data) -> {
               LOG.info("{} Started", event.getActorId());
-              StartDomain domainEvent = new StartDomain();
+              StartDomain domainEvent = new StartDomain(event);
               return goTo(WorkerState.ACTIVE)
                   .applying(domainEvent);
             }
@@ -40,7 +42,8 @@ public class WorkerActor extends
             (event, data) -> {
               LOG.info("{} Message {}", event.getActorId(), event.getText());
               message.add(event.getText());
-              return stay();
+              MessageDomain domainEvent = new MessageDomain(event);
+              return stay().applying(domainEvent);
             }
 
         )
@@ -50,7 +53,8 @@ public class WorkerActor extends
         matchEvent(StoppedEvent.class,
             (event, data) -> {
               LOG.info("{} Stopped, size={}", event.getActorId(), message.size());
-              return stop();
+              StopDomain domainEvent = new StopDomain(event);
+              return stop().applying(domainEvent);
             }
 
         )
@@ -58,10 +62,14 @@ public class WorkerActor extends
   }
 
   @Override
+  public void onRecoveryCompleted() {
+    LOG.info("onRecoveryCompleted: {} {}", stateName(), stateData().getActorId());
+  }
+
+  @Override
   public Class domainEventClass() {
     return Domain.class;
   }
-
 
   @Override
   public String persistenceId() {
@@ -70,6 +78,14 @@ public class WorkerActor extends
 
   @Override
   public WorkerData applyEvent(Domain domainEvent, WorkerData currentData) {
-    return null;
+    LOG.info("apply {} {}",domainEvent.getEvent().getActorId(),domainEvent.getClass().getSimpleName());
+    if(domainEvent instanceof StartDomain){
+      currentData.setActorId(domainEvent.getEvent().getActorId());
+    }else if(domainEvent instanceof MessageDomain){
+      currentData.appendMessage(((MessageDomain)domainEvent).getEvent().getText());
+    }else if(domainEvent instanceof StopDomain){
+      currentData.setActorId(domainEvent.getEvent().getActorId());
+    }
+    return currentData;
   }
 }
