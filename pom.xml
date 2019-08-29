@@ -16,8 +16,8 @@
 
   <modules>
     <module>akka-java-fsm</module>
+    <module>akka-java-fsm-persistence</module>
     <module>akka-java-kafka</module>
-    <module>akka-java-persistence-fsm</module>
     <module>akka-java-cluster</module>
     <module>akka-java-cluster-pubsub</module>
     <module>akka-java-cluster-sharding</module>
