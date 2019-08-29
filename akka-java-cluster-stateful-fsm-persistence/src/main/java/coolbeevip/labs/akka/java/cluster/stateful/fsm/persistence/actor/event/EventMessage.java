@@ -1,6 +1,4 @@
-package coolbeevip.labs.akka.java.kafka.actor.event;
-
-import coolbeevip.labs.akka.java.kafka.actor.event.Event;
+package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event;
 
 public class EventMessage extends Event {
 

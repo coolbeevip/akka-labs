@@ -1,4 +1,4 @@
-package coolbeevip.labs.akka.java.kafka.actor.command;
+package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain;
 
 import java.io.Serializable;
 

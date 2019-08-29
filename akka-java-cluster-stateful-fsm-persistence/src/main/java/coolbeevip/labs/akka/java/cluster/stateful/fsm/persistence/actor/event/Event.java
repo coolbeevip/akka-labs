@@ -1,4 +1,4 @@
-package coolbeevip.labs.akka.java.kafka.actor.event;
+package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event;
 
 import java.io.Serializable;
 

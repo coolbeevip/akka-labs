@@ -1,4 +1,4 @@
-package coolbeevip.labs.akka.java.kafka.actor;
+package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -7,12 +7,12 @@ import akka.actor.Props;
 import akka.cluster.sharding.ClusterSharding;
 import akka.cluster.sharding.ClusterShardingSettings;
 import akka.cluster.sharding.ShardRegion;
-import coolbeevip.labs.akka.java.kafka.actor.event.Event;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.Event;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RouteSingletonActor extends AbstractActor {
+public class ShardRegionActor extends AbstractActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private final ActorRef workerRegion;
@@ -49,14 +49,14 @@ public class RouteSingletonActor extends AbstractActor {
     }
   };
 
-  public RouteSingletonActor() {
+  public ShardRegionActor() {
     // 创建集群分片
     ActorSystem system = getContext().getSystem();
     ClusterShardingSettings settings = ClusterShardingSettings.create(system);
     workerRegion = ClusterSharding.get(system)
         .start(
             "worker",
-            Props.create(FsmActor.class),
+            Props.create(WorkerActor.class),
             settings,
             messageExtractor);
   }

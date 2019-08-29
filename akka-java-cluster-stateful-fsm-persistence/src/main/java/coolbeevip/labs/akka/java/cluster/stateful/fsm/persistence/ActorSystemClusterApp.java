@@ -1,4 +1,4 @@
-package coolbeevip.labs.akka.java.kafka;
+package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -11,10 +11,10 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import coolbeevip.labs.akka.java.kafka.actor.event.EventStarted;
-import coolbeevip.labs.akka.java.kafka.actor.event.EventMessage;
-import coolbeevip.labs.akka.java.kafka.actor.RouteSingletonActor;
-import coolbeevip.labs.akka.java.kafka.actor.event.EventEnded;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StartedEvent;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.EventMessage;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.ShardRegionActor;
+import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StoppedEvent;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SagaCoordinateApp {
+public class ActorSystemClusterApp {
 
   private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public final static String TOPIC_NAME = "saga-event";
@@ -53,7 +53,7 @@ public class SagaCoordinateApp {
           ConfigFactory.parseString("akka.remote.artery.canonical.port=" + port)
               .withFallback(ConfigFactory.load());
       final ActorSystem system = ActorSystem.create("ClusterSystem", config);
-      ActorRef routeActorProxy = system.actorOf(Props.create(RouteSingletonActor.class));
+      ActorRef shardRegionActor = system.actorOf(Props.create(ShardRegionActor.class));
 
       // 创建 Kafka Actor
       final Materializer materializer = ActorMaterializer.create(system);
@@ -77,11 +77,11 @@ public class SagaCoordinateApp {
           })
           .to(Sink.foreach(record -> {
             if (record.value().equals("begin")) {
-              routeActorProxy.tell(new EventStarted(record.key()), routeActorProxy);
+              shardRegionActor.tell(new StartedEvent(record.key()), shardRegionActor);
             } else if (record.value().equals("end")) {
-              routeActorProxy.tell(new EventEnded(record.key()), routeActorProxy);
+              shardRegionActor.tell(new StoppedEvent(record.key()), shardRegionActor);
             } else {
-              routeActorProxy.tell(new EventMessage(record.key(), record.value()), routeActorProxy);
+              shardRegionActor.tell(new EventMessage(record.key(), record.value()), shardRegionActor);
             }
           }))
           .run(materializer);
