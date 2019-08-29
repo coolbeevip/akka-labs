@@ -22,6 +22,7 @@
     <module>akka-java-cluster-pubsub</module>
     <module>akka-java-cluster-sharding</module>
     <module>akka-java-typed-persistence</module>
+    <module>akka-java-cluster-stateful-fsm-persistence</module>
   </modules>
 
   <properties>
