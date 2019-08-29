@@ -11,7 +11,7 @@
   </parent>
 
   <groupId>coolbeevip.labs</groupId>
-  <artifactId>akka.java.cluster.pubsub</artifactId>
+  <artifactId>akka-java-cluster-pubsub</artifactId>
 
   <dependencies>
     <!-- akka -->

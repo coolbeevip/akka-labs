@@ -12,7 +12,7 @@
 
 
   <groupId>coolbeevip.labs</groupId>
-  <artifactId>akka.java.persistence.fsm</artifactId>
+  <artifactId>akka-java-persistence-fsm</artifactId>
 
   <dependencies>
     <dependency>

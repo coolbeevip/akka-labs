@@ -1,13 +1,6 @@
 package coolbeevip.labs.akka.java.kafka;
 
-import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.PoisonPill;
-import akka.actor.Props;
-import akka.cluster.singleton.ClusterSingletonManager;
-import akka.cluster.singleton.ClusterSingletonManagerSettings;
-import akka.cluster.singleton.ClusterSingletonProxy;
-import akka.cluster.singleton.ClusterSingletonProxySettings;
 import akka.kafka.ConsumerSettings;
 import akka.kafka.Subscriptions;
 import akka.kafka.javadsl.Consumer;
@@ -16,9 +9,6 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.Sink;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import coolbeevip.labs.akka.java.kafka.actor.Message;
-import coolbeevip.labs.akka.java.kafka.actor.RouteSingletonActor;
-import coolbeevip.labs.akka.java.kafka.actor.Stop;
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,40 +33,27 @@ public class ConsumerApp {
   public final static String BOOTSTRAP_SERVERS = "localhost:9092";
 
   public static void main(String[] args) {
-    if(args.length==0){
+    if (args.length == 0) {
       startup(new String[]{"2551", "2552", "0"});
-    }else{
+    } else {
       startup(args);
     }
   }
 
   public static void startup(String[] ports) {
     for (String port : ports) {
-      // init ActorSystem
+      // 创建 Actor 系统
       final Config config =
-          ConfigFactory.parseString("akka.remote.netty.tcp.port=" + port)
-              .withFallback(ConfigFactory.parseString("akka.cluster.roles = [compute]"))
-              .withFallback(ConfigFactory.load("route-singleton"));
+          ConfigFactory.parseString("akka.remote.artery.canonical.port=" + port)
+              .withFallback(ConfigFactory.load());
       final ActorSystem system = ActorSystem.create("ClusterSystem", config);
 
-      // 创建单例RouteActor
-      ClusterSingletonManagerSettings settings = ClusterSingletonManagerSettings.create(system).withRole("compute");
-      system.actorOf(ClusterSingletonManager.props(
-          Props.create(RouteSingletonActor.class), PoisonPill.getInstance(), settings),
-          "routeActor");
-      ClusterSingletonProxySettings proxySettings = ClusterSingletonProxySettings.create(system).withRole("compute");
-      ActorRef routeActorProxy = system.actorOf(ClusterSingletonProxy.props("/user/routeActor",
-          proxySettings), "routeActorProxy");
-
+      // 创建 Kafka Actor
       final Materializer materializer = ActorMaterializer.create(system);
-
-      // load kafka config
       final Config consumerConfig = system.settings().config().getConfig("akka.kafka.consumer");
-
-      // initTopic
+      // 创建 Topic
       initTopic(BOOTSTRAP_SERVERS, TOPIC_NAME);
-
-      // init consumer
+      // 创建 consumer
       final ConsumerSettings<String, String> consumerSettings =
           ConsumerSettings
               .create(consumerConfig, new StringDeserializer(), new StringDeserializer())
@@ -88,15 +65,10 @@ public class ConsumerApp {
 
       Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(TOPIC_NAME))
           .mapAsync(1, record -> {
-            LOG.debug("key {}, value {}", record.key(), record.value());
             return CompletableFuture.completedFuture(record);
           })
           .to(Sink.foreach(record -> {
-            if(record.value().equals("stop")){
-              routeActorProxy.tell(new Stop(record.key()),routeActorProxy);
-            }else{
-              routeActorProxy.tell(new Message(record.key(),record.value()),routeActorProxy);
-            }
+            LOG.info("key {}, value {}", record.key(), record.value());
           }))
           .run(materializer);
     }

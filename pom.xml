@@ -21,7 +21,7 @@
     <module>akka-java-cluster</module>
     <module>akka-java-cluster-pubsub</module>
     <module>akka-java-cluster-sharding</module>
-    <module>akka-java-typed-persistence-fsm</module>
+    <module>akka-java-typed-persistence</module>
   </modules>
 
   <properties>
@@ -80,6 +80,31 @@
       <dependency>
         <groupId>com.typesafe.akka</groupId>
         <artifactId>akka-actor-typed_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-remote_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-cluster-typed_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-actor-typed_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-cluster-sharding-typed_2.12</artifactId>
+        <version>${akka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.typesafe.akka</groupId>
+        <artifactId>akka-persistence-typed_2.12</artifactId>
         <version>${akka.version}</version>
       </dependency>
 

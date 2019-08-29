@@ -11,7 +11,7 @@
   </parent>
 
   <groupId>coolbeevip.labs</groupId>
-  <artifactId>akka.java.fsm</artifactId>
+  <artifactId>akka-java-fsm</artifactId>
 
   <dependencies>
     <dependency>
