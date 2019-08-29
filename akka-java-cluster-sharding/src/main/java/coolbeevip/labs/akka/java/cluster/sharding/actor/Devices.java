@@ -23,7 +23,7 @@ public class Devices extends AbstractActor {
 
   private final Random random = new Random();
 
-  private final Integer numberOfDevices = 50;
+  private final Integer numberOfDevices = 2;
 
   // 自定义 ShardRegion 实体标示提取器
   static ShardRegion.MessageExtractor messageExtractor = new ShardRegion.MessageExtractor() {
@@ -90,7 +90,7 @@ public class Devices extends AbstractActor {
   public Receive createReceive() {
     return receiveBuilder()
         .match(UpdateDevice.class, u -> {
-          // 生成50以内的随机数作为 deviceId, 并模拟生成一个温度消息发给 DeviceRegion
+          // 生成2以内的随机数作为 deviceId, 并模拟生成一个温度消息发给 DeviceRegion
           Integer deviceId = random.nextInt(numberOfDevices);
           Double temperature = 5 + 30 * random.nextDouble();
           Device.RecordTemperature msg = new Device.RecordTemperature(deviceId, temperature);
