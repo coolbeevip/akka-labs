@@ -66,7 +66,7 @@ public class Devices extends AbstractActor {
   public Devices() {
     ActorSystem system = getContext().getSystem();
 
-    // 创建共享集群配置，启动 ShardRegion 并在 Region 中注册 Actor
+    // 创建集群分片配置，启动 ShardRegion 并在 Region 中注册 Actor
     ClusterShardingSettings settings = ClusterShardingSettings.create(system);
     deviceRegion = ClusterSharding.get(system)
         .start(
