@@ -40,38 +40,33 @@ public class ConsumerApp {
     }
   }
 
-  public static void startup(String[] ports) {
-    for (String port : ports) {
-      // 创建 Actor 系统
-      final Config config =
-          ConfigFactory.parseString("akka.remote.artery.canonical.port=" + port)
-              .withFallback(ConfigFactory.load());
-      final ActorSystem system = ActorSystem.create("ClusterSystem", config);
+  public static void startup(String[] args) {
+    final Config config = ConfigFactory.load();
+    final ActorSystem system = ActorSystem.create("KafkaSystem", config);
 
-      // 创建 Kafka Actor
-      final Materializer materializer = ActorMaterializer.create(system);
-      final Config consumerConfig = system.settings().config().getConfig("akka.kafka.consumer");
-      // 创建 Topic
-      initTopic(BOOTSTRAP_SERVERS, TOPIC_NAME);
-      // 创建 consumer
-      final ConsumerSettings<String, String> consumerSettings =
-          ConsumerSettings
-              .create(consumerConfig, new StringDeserializer(), new StringDeserializer())
-              .withBootstrapServers(BOOTSTRAP_SERVERS)
-              .withGroupId("group-saga")
-              .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-              .withProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000")
-              .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    // 创建 Kafka Actor
+    final Materializer materializer = ActorMaterializer.create(system);
+    final Config consumerConfig = system.settings().config().getConfig("akka.kafka.consumer");
+    // 创建 Topic
+    initTopic(BOOTSTRAP_SERVERS, TOPIC_NAME);
+    // 创建 consumer
+    final ConsumerSettings<String, String> consumerSettings =
+        ConsumerSettings
+            .create(consumerConfig, new StringDeserializer(), new StringDeserializer())
+            .withBootstrapServers(BOOTSTRAP_SERVERS)
+            .withGroupId("group-saga")
+            .withProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
+            .withProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000")
+            .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-      Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(TOPIC_NAME))
-          .mapAsync(1, record -> {
-            return CompletableFuture.completedFuture(record);
-          })
-          .to(Sink.foreach(record -> {
-            LOG.info("key {}, value {}", record.key(), record.value());
-          }))
-          .run(materializer);
-    }
+    Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(TOPIC_NAME))
+        .mapAsync(1, record -> {
+          return CompletableFuture.completedFuture(record);
+        })
+        .to(Sink.foreach(record -> {
+          LOG.info("key {}, value {}", record.key(), record.value());
+        }))
+        .run(materializer);
   }
 
   private static void initTopic(String bootstrapServers, String topicName) {
