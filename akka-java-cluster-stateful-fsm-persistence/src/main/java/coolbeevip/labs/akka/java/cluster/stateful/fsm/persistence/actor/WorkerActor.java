@@ -6,7 +6,6 @@ import akka.persistence.fsm.AbstractPersistentFSM;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.Domain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.MessageDomain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.StartDomain;
-import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.StopDomain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StoppedEvent;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.EventMessage;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.event.StartedEvent;
@@ -24,7 +23,7 @@ public class WorkerActor extends
   private String persistenceId;
 
   public WorkerActor() {
-    LOG.info("{} init",getSelf());
+    LOG.debug("{} init", getSelf());
     persistenceId = getSelf().path().name();
     startWith(WorkerState.IDLE, WorkerData.builder().actorId(persistenceId).build());
 
@@ -60,7 +59,8 @@ public class WorkerActor extends
               deleteMessages(lastSequenceNr());
               deleteSnapshot(snapshotSequenceNr());
               // 停止持久化的Actor前，需要发送 PoisonPill 给 Shard，否则这个 Actor 停止后将会被自动恢复
-              getContext().getParent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
+              getContext().getParent()
+                  .tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
               return stop();
             }
 
@@ -70,7 +70,11 @@ public class WorkerActor extends
     onTermination(
         matchStop(
             Normal(), (state, data) -> {
-              LOG.info("{} termination, actorId={}, messageSize={}", getSelf(), data.getActorId(), data.getMessages().size());
+              LOG.info("{} termination, actorId={}, messageSize={}", getSelf(), data.getActorId(),
+                  data.getMessages().size());
+              if (data.getMessages().size() != 10) {
+                LOG.error("***************** 不可用 Actor {}",data.getMessages().toArray(new String[0]));
+              }
             }
         )
     );
@@ -78,7 +82,10 @@ public class WorkerActor extends
 
   @Override
   public void onRecoveryCompleted() {
-    LOG.info("{} recovery completed state={}, actorId={}, messageSize={}", getSelf(), stateName(), stateData().getActorId(),stateData().getMessages().size());
+    if (stateData().getMessages().size() != 10 && stateData().getMessages().size() != 0) {
+      LOG.info("{} recovery completed state={}, actorId={}, messageSize={}", getSelf(), stateName(),
+          stateData().getActorId(), stateData().getMessages().size());
+    }
   }
 
   @Override
@@ -93,11 +100,11 @@ public class WorkerActor extends
 
   @Override
   public WorkerData applyEvent(Domain domainEvent, WorkerData currentData) {
-    LOG.debug("apply {} {}", getSelf() ,domainEvent.getClass().getSimpleName());
-    if(domainEvent instanceof StartDomain){
+    LOG.debug("apply {} {}", getSelf(), domainEvent.getClass().getSimpleName());
+    if (domainEvent instanceof StartDomain) {
       currentData.setActorId(domainEvent.getEvent().getActorId());
-    }else if(domainEvent instanceof MessageDomain){
-      currentData.appendMessage(((MessageDomain)domainEvent).getEvent().getText());
+    } else if (domainEvent instanceof MessageDomain) {
+      currentData.appendMessage(((MessageDomain) domainEvent).getEvent().getText());
     }
     return currentData;
   }

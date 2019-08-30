@@ -71,7 +71,7 @@ public class ActorSystemClusterApp {
               .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
       Consumer.atMostOnceSource(consumerSettings, Subscriptions.topics(TOPIC_NAME))
-          .mapAsync(1, record -> {
+          .mapAsync(50, record -> {
             LOG.debug("key {}, value {}", record.key(), record.value());
             return CompletableFuture.completedFuture(record);
           })

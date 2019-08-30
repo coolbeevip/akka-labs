@@ -21,18 +21,25 @@ public class EventProducer {
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
     Producer<String, String> producer = new org.apache.kafka.clients.producer.KafkaProducer<>(props);
     long counter=0;
-    for (int k = 0; k < 1; k++) {
-      String globalTxId = UUID.randomUUID().toString();
-      LOG.info("id {}",globalTxId);
+    for (int k = 0; k < 500; k++) {
+      String globalTxId = counter+"-"+UUID.randomUUID().toString();
       producer.send(new ProducerRecord<String, String>(ActorSystemClusterApp.TOPIC_NAME,
           globalTxId, "begin"));
       for (int i = 0; i < 10; i++) {
         producer.send(new ProducerRecord<String, String>(ActorSystemClusterApp.TOPIC_NAME,
             globalTxId, String.valueOf(i)));
-        producer.flush();
+//        try {
+//          Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//          e.printStackTrace();
+//        }
+        //producer.flush();
       }
       producer.send(new ProducerRecord<String, String>(ActorSystemClusterApp.TOPIC_NAME,
           globalTxId, "end"));
+      counter++;
+      LOG.info("{} {}",counter, globalTxId);
+
     }
     System.out.println("EventMessage sent successfully. total "+counter);
     producer.flush();
