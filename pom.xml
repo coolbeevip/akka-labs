@@ -40,6 +40,7 @@
     <kafka.version>2.1.1</kafka.version>
     <leveldbjni-all.version>1.8</leveldbjni-all.version>
     <akka-persistence-redis.version>0.4.0</akka-persistence-redis.version>
+    <akka-persistence-jdbc.version>3.5.2</akka-persistence-jdbc.version>
   </properties>
 
   <dependencyManagement>
@@ -120,7 +121,11 @@
         <artifactId>akka-persistence-redis_2.12</artifactId>
         <version>${akka-persistence-redis.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>com.github.dnvriend</groupId>
+        <artifactId>akka-persistence-jdbc_2.12</artifactId>
+        <version>${akka-persistence-jdbc.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>

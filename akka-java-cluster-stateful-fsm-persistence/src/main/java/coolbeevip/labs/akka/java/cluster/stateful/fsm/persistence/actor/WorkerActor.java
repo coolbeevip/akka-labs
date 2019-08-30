@@ -1,5 +1,7 @@
 package coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor;
 
+import akka.actor.PoisonPill;
+import akka.cluster.sharding.ShardRegion;
 import akka.persistence.fsm.AbstractPersistentFSM;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.Domain;
 import coolbeevip.labs.akka.java.cluster.stateful.fsm.persistence.actor.domain.MessageDomain;
@@ -22,13 +24,14 @@ public class WorkerActor extends
   private String persistenceId;
 
   public WorkerActor() {
+    LOG.info("{} init",getSelf());
     persistenceId = getSelf().path().name();
     startWith(WorkerState.IDLE, WorkerData.builder().actorId(persistenceId).build());
 
     when(WorkerState.IDLE,
         matchEvent(StartedEvent.class,
             (event, data) -> {
-              LOG.info("{} Started", event.getActorId());
+              LOG.info("{} receive Started", getSelf());
               StartDomain domainEvent = new StartDomain(event);
               return goTo(WorkerState.ACTIVE)
                   .applying(domainEvent);
@@ -40,7 +43,7 @@ public class WorkerActor extends
     when(WorkerState.ACTIVE,
         matchEvent(EventMessage.class,
             (event, data) -> {
-              LOG.info("{} Message {}", event.getActorId(), event.getText());
+              LOG.info("{} receive Message {}", getSelf(), event.getText());
               message.add(event.getText());
               MessageDomain domainEvent = new MessageDomain(event);
               return stay().applying(domainEvent);
@@ -52,18 +55,30 @@ public class WorkerActor extends
     when(WorkerState.ACTIVE,
         matchEvent(StoppedEvent.class,
             (event, data) -> {
-              LOG.info("{} Stopped, size={}", event.getActorId(), message.size());
-              StopDomain domainEvent = new StopDomain(event);
-              return stop().applying(domainEvent);
+              LOG.info("{} receive Stopped, size={}", getSelf(), data.getMessages().size());
+              // 停止持久化的Actor前，需要删除持久化数据，否则重启后会自动恢复这个 Actor
+              deleteMessages(lastSequenceNr());
+              deleteSnapshot(snapshotSequenceNr());
+              // 停止持久化的Actor前，需要发送 PoisonPill 给 Shard，否则这个 Actor 停止后将会被自动恢复
+              getContext().getParent().tell(new ShardRegion.Passivate(PoisonPill.getInstance()), getSelf());
+              return stop();
             }
 
+        )
+    );
+
+    onTermination(
+        matchStop(
+            Normal(), (state, data) -> {
+              LOG.info("{} termination, actorId={}, messageSize={}", getSelf(), data.getActorId(), data.getMessages().size());
+            }
         )
     );
   }
 
   @Override
   public void onRecoveryCompleted() {
-    LOG.info("onRecoveryCompleted: {} {}", stateName(), stateData().getActorId());
+    LOG.info("{} recovery completed state={}, actorId={}, messageSize={}", getSelf(), stateName(), stateData().getActorId(),stateData().getMessages().size());
   }
 
   @Override
@@ -78,13 +93,11 @@ public class WorkerActor extends
 
   @Override
   public WorkerData applyEvent(Domain domainEvent, WorkerData currentData) {
-    LOG.info("apply {} {}",domainEvent.getEvent().getActorId(),domainEvent.getClass().getSimpleName());
+    LOG.debug("apply {} {}", getSelf() ,domainEvent.getClass().getSimpleName());
     if(domainEvent instanceof StartDomain){
       currentData.setActorId(domainEvent.getEvent().getActorId());
     }else if(domainEvent instanceof MessageDomain){
       currentData.appendMessage(((MessageDomain)domainEvent).getEvent().getText());
-    }else if(domainEvent instanceof StopDomain){
-      currentData.setActorId(domainEvent.getEvent().getActorId());
     }
     return currentData;
   }

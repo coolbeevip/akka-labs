@@ -44,6 +44,10 @@
       <artifactId>akka-persistence-redis_2.12</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.dnvriend</groupId>
+      <artifactId>akka-persistence-jdbc_2.12</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
     </dependency>
