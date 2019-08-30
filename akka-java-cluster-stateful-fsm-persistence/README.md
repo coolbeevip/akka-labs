@@ -1,6 +1,7 @@
 # Stateful Actor Cluster
 
 * Stateful Actor
+* Persistence Actor 
 * Cluster Sharding
 * High Availability
 
